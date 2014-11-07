@@ -49,7 +49,7 @@ module PaperclipAssetBlitline
         style_hash["params"] = {}
         style_hash["params"]["width"]  = geometry.width  if geometry.width  > 0
         style_hash["params"]["height"] = geometry.height if geometry.height > 0
-        style_hash["name"] = @asset.content_type =~ /gif/ ?
+        style_hash["name"] = @asset.path(style) =~ /\.gif$/ ?
                                translate_gif_geometry_modifier(geometry.modifier) :
                                  translate_geometry_modifier(geometry.modifier)
         result << style_hash

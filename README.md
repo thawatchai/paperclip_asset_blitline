@@ -8,6 +8,8 @@ In your Gemfile:
 
 ```gem 'paperclip_asset_blitline'```
 
+Follow the instructions in [http://www.blitline.com/docs/s3_permissions](http://www.blitline.com/docs/s3_permissions) to set S3 permission.
+
 
 Necessary ENV settings:
 -----------------------

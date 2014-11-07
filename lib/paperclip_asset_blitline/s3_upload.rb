@@ -28,14 +28,30 @@ module PaperclipAssetBlitline
       end
     end
 
+    def translate_gif_geometry_modifier(modifier)
+      # NOTE: Add this later, we only need this for now.
+      case modifier
+      when "#"
+        "resize_gif"
+      else
+        "resize_gif_to_fit"
+      end
+    end
+
     def asset_styles_for_blitline
       @asset.styles.keys.inject([]) do |result, style|
         geometry = Paperclip::Geometry.parse(@asset.styles[style].geometry)
-        style_hash = { "save" => { "image_identifier" => style.to_s } }
+        style_hash = {
+          "save"   => { "image_identifier" => style.to_s },
+          "bucket" => ENV["S3_BUCKET"],
+          "key"    => @asset.path(style)
+        }
         style_hash["params"] = {}
         style_hash["params"]["width"]  = geometry.width  if geometry.width  > 0
         style_hash["params"]["height"] = geometry.height if geometry.height > 0
-        style_hash["name"] = translate_geometry_modifier(geometry.modifier)
+        style_hash["name"] = @asset.content_type =~ /gif/ ?
+                               translate_gif_geometry_modifier(geometry.modifier) :
+                                 translate_geometry_modifier(geometry.modifier)
         result << style_hash
       end
     end
@@ -48,13 +64,13 @@ module PaperclipAssetBlitline
         "src" => url,
         "functions" => asset_styles_for_blitline
       })
-      # Rails.logger.error "**************************************************************"
-      # Rails.logger.error asset_styles_for_blitline.inspect
-      # Rails.logger.error "**************************************************************"
+      Rails.logger.error "**************************************************************"
+      Rails.logger.error asset_styles_for_blitline.inspect
+      Rails.logger.error "**************************************************************"
       response = blitline_service.post_job_and_wait_for_poll
-      # Rails.logger.error "**************************************************************"
-      # Rails.logger.error response.inspect
-      # Rails.logger.error "**************************************************************"
+      Rails.logger.error "**************************************************************"
+      Rails.logger.error response.inspect
+      Rails.logger.error "**************************************************************"
 
       # { "original_meta"=>{"width"=>262, "height"=>192},
       #   "images"=>[
@@ -68,14 +84,14 @@ module PaperclipAssetBlitline
       # }
     
       # Copy each images in the response back to s3.
-      s3 = AWS::S3.new
-      images = response["images"]
-      images.each do |image_hash|
-        size = image_hash["image_identifier"]
-        file_content = open(image_hash["s3_url"]) { |f| f.read }
-        s3.buckets[ENV["S3_BUCKET"]].objects[@asset.path(size)].write(file_content)
-        s3.buckets[ENV["S3_BUCKET"]].objects[@asset.path(size)].acl = :public_read
-      end    
+      # s3 = AWS::S3.new
+      # images = response["images"]
+      # images.each do |image_hash|
+      #   size = image_hash["image_identifier"]
+      #   file_content = open(image_hash["s3_url"]) { |f| f.read }
+      #   s3.buckets[ENV["S3_BUCKET"]].objects[@asset.path(size)].write(file_content)
+      #   s3.buckets[ENV["S3_BUCKET"]].objects[@asset.path(size)].acl = :public_read
+      # end    
     end
   end
 end

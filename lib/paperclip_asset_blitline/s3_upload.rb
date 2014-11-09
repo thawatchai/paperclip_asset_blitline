@@ -69,13 +69,13 @@ module PaperclipAssetBlitline
       blitline_service = Blitline.new
       blitline_service.add_job_via_hash(job)
 
-      Rails.logger.error "**************************************************************"
-      Rails.logger.error job.inspect
-      Rails.logger.error "**************************************************************"
+      # Rails.logger.error "**************************************************************"
+      # Rails.logger.error job.inspect
+      # Rails.logger.error "**************************************************************"
       response = blitline_service.post_job_and_wait_for_poll
-      Rails.logger.error "**************************************************************"
-      Rails.logger.error response.inspect
-      Rails.logger.error "**************************************************************"
+      # Rails.logger.error "**************************************************************"
+      # Rails.logger.error response.inspect
+      # Rails.logger.error "**************************************************************"
 
       # { "original_meta"=>{"width"=>262, "height"=>192},
       #   "images"=>[

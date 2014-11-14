@@ -30,7 +30,7 @@ module PaperclipAssetBlitline
 
             # Hijack the attribute to prevent paperclip from processing automatically.
             define_method("#{name}=") do |uploaded|
-              if self.class.is_blitline_enabled? && uploaded
+              if self.class.is_blitline_enabled? && uploaded && uploaded.content_type =~ /(jpeg|jpg|png|gif)/i
                 self.send("blitline_#{name}=", uploaded)
                 self.send("#{name}_file_size=", uploaded.size)
                 self.send("#{name}_file_name=", self.class.convert_thai_filename(uploaded.original_filename))
@@ -53,11 +53,7 @@ module PaperclipAssetBlitline
 
       def upload_to_s3_and_process_with_blitline
         self.class.blitline_asset_names.each do |asset_name|
-          begin
           is_image = self.send("#{asset_name}_content_type") =~ /(jpeg|jpg|png|gif)/i
-        rescue
-          raise [self.class.blitline_asset_names, asset_name, self].inspect
-        end
           current_asset = self.send("blitline_#{asset_name}")
           if ! current_asset.nil? && is_image
             ::PaperclipAssetBlitline::S3Upload.new(self, current_asset, asset_name).upload!

@@ -1,9 +1,11 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
 
+require "paperclip_asset_blitline/version"
+
 Gem::Specification.new do |s|
   s.name        = "paperclip_asset_blitline"
-  s.version     = "0.0.4"
+  s.version     = PaperclipAssetBlitline::VERSION
   s.platform    = Gem::Platform::RUBY  
   s.summary     = "Upload paperclip asset to S3 directly and process with blitline."
   s.email       = "support@usablelabs.org"

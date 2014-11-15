@@ -16,6 +16,10 @@ module PaperclipAssetBlitline
       process_with_blitline!
     end
 
+    def reprocess!
+      process_with_blitline!
+    end
+
     private
 
     def translate_geometry_modifier(modifier, gif = false)

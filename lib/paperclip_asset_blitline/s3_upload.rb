@@ -32,17 +32,50 @@ module PaperclipAssetBlitline
       end
     end
 
+    def extended_resize_to_fill_functions(style, geometry)
+      [{
+        "name" => "resize_to_fill",
+        "params" => {
+          "width"  => geometry.width,
+          "height" => geometry.height
+        },
+        "save" => {
+          "image_identifier": style.to_s
+        }
+      }]
+    end
+
     def style_hash_for(style, gif = false)
       geometry = Paperclip::Geometry.parse(@asset.styles[style].geometry)
-      style_hash = {
-        "save"   => { "image_identifier" => style.to_s } #,
-        # "bucket" => ENV["S3_BUCKET"],
-        # "key"    => @asset.path(style)
-      }
-      style_hash["params"] = {}
-      style_hash["params"]["width"]  = geometry.width  if geometry.width  > 0
-      style_hash["params"]["height"] = geometry.height if geometry.height > 0
+      style_hash = {}
       style_hash["name"] = translate_geometry_modifier(geometry.modifier, gif)
+      style_hash["params"] = {}
+      if geometry.modifier == ">" &&
+         (@asset.styles[style].geometry =~ /^(\d*)x(\d+)\>$/ ||
+          @asset.styles[style].geometry =~ /^(\d+)\>x?(\d*)$/)
+        # NOTE: This is different from paperclip/imagemagick.
+        # =>    e.g.: 940x300> will resize to the width first, then crop the height
+        # =>                   if it's more than 300px.
+        # =>          940>x300 will resize to the height first, then crop the width
+        # =>                   if it's more than 940px.
+        # =>    This doesn't work for .gif.
+        if @asset.styles[style].geometry =~ /^(\d*)x(\d+)\>$/
+          # Resize to width, then crop the height.
+          style_hash["params"]["width"] = geometry.width
+        elsif @asset.styles[style].geometry =~ /^(\d+)\>x?(\d*)$/
+          # Resize to height, then crop the width.
+          style_hash["params"]["height"] = geometry.height
+        end
+        style_hash["functions"] = extended_resize_to_fill_functions(style, geometry)
+      else
+        style_hash["save"] = { "image_identifier" => style.to_s }
+        # {
+          # "bucket" => ENV["S3_BUCKET"],
+          # "key"    => @asset.path(style)
+        # }
+        style_hash["params"]["width"]  = geometry.width  if geometry.width  > 0
+        style_hash["params"]["height"] = geometry.height if geometry.height > 0
+      end
       style_hash
     end
 

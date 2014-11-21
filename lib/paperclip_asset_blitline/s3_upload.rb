@@ -32,10 +32,12 @@ module PaperclipAssetBlitline
       end
     end
 
-    def extended_resize_to_fill_functions(style, geometry)
+    def extended_crop_functions(style, geometry)
       [{
-        "name" => "resize_to_fill",
+        "name" => "crop",
         "params" => {
+          "x"      => 0,
+          "y"      => 0,
           "width"  => geometry.width,
           "height" => geometry.height
         },
@@ -66,7 +68,7 @@ module PaperclipAssetBlitline
           # Resize to height, then crop the width.
           style_hash["params"]["height"] = geometry.height
         end
-        style_hash["functions"] = extended_resize_to_fill_functions(style, geometry)
+        style_hash["functions"] = extended_crop_functions(style, geometry)
       else
         style_hash["save"] = { "image_identifier" => style.to_s }
         # {

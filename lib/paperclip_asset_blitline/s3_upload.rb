@@ -40,7 +40,7 @@ module PaperclipAssetBlitline
           "height" => geometry.height
         },
         "save" => {
-          "image_identifier": style.to_s
+          "image_identifier" => style.to_s
         }
       }]
     end

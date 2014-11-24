@@ -52,7 +52,7 @@ module PaperclipAssetBlitline
       style_hash = {}
       style_hash["name"] = translate_geometry_modifier(geometry.modifier, gif)
       style_hash["params"] = {}
-      if geometry.modifier == ">" &&
+      if geometry.modifier == ">" && ! gif &&
          (@asset.styles[style].geometry =~ /^(\d*)x(\d+)\>$/ ||
           @asset.styles[style].geometry =~ /^(\d+)\>x?(\d*)$/)
         # NOTE: This is different from paperclip/imagemagick.

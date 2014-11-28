@@ -10,7 +10,7 @@ module PaperclipAssetBlitline
       end
 
       def convert_thai_filename(filename)
-        cld = CLD.detect_language(filename)
+        cld = ::CLD.detect_language(filename)
         if cld[:code] == "th"
           # Rename the file if it's using Thai language.
           DateTime.now.strftime("%Y%m%d%H%M%S") + File.extname(filename)

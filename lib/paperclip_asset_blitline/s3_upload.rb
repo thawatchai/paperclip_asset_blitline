@@ -13,8 +13,20 @@ module PaperclipAssetBlitline
 
     def upload!
       s3 = AWS::S3.new
+      if ENV["BLITLINE_DEBUG"]
+        Rails.logger.error "**************************************************************"
+        Rails.logger.error "Uploading original to: #{@asset.path(:original)}"
+        Rails.logger.error @uploaded_file.inspect
+        Rails.logger.error "**************************************************************"
+      end
       s3.buckets[ENV["S3_BUCKET"]].objects[@asset.path(:original)].write(@uploaded_file)
       s3.buckets[ENV["S3_BUCKET"]].objects[@asset.path(:original)].acl = :public_read
+      if ENV["BLITLINE_DEBUG"]
+        Rails.logger.error "**************************************************************"
+        Rails.logger.error "Upload result:"
+        Rails.logger.error s3.buckets[ENV["S3_BUCKET"]].objects[@asset.path(:original)].inspect
+        Rails.logger.error "**************************************************************"
+      end
       process_with_blitline!
     end
 
@@ -110,13 +122,17 @@ module PaperclipAssetBlitline
       blitline_service = Blitline.new
       blitline_service.add_job_via_hash(job)
 
-      Rails.logger.error "**************************************************************"
-      Rails.logger.error job.inspect
-      Rails.logger.error "**************************************************************"
+      if ENV["BLITLINE_DEBUG"]
+        Rails.logger.error "**************************************************************"
+        Rails.logger.error job.inspect
+        Rails.logger.error "**************************************************************"
+      end
       response = blitline_service.post_job_and_wait_for_poll
-      Rails.logger.error "**************************************************************"
-      Rails.logger.error response.inspect
-      Rails.logger.error "**************************************************************"
+      if ENV["BLITLINE_DEBUG"]
+        Rails.logger.error "**************************************************************"
+        Rails.logger.error response.inspect
+        Rails.logger.error "**************************************************************"
+      end
 
       # { "original_meta"=>{"width"=>262, "height"=>192},
       #   "images"=>[

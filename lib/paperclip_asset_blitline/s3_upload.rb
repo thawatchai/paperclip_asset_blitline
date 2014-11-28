@@ -13,18 +13,19 @@ module PaperclipAssetBlitline
 
     def upload!
       s3 = AWS::S3.new
+      path = @asset.path(:original).sub(/^\//, "")
       if ENV["BLITLINE_DEBUG"]
         Rails.logger.error "**************************************************************"
-        Rails.logger.error "Uploading original to: #{@asset.path(:original)}"
+        Rails.logger.error "Uploading original to: #{path}"
         Rails.logger.error @uploaded_file.inspect
         Rails.logger.error "**************************************************************"
       end
-      s3.buckets[ENV["S3_BUCKET"]].objects[@asset.path(:original)].write(@uploaded_file)
-      s3.buckets[ENV["S3_BUCKET"]].objects[@asset.path(:original)].acl = :public_read
+      s3.buckets[ENV["S3_BUCKET"]].objects[path].write(@uploaded_file)
+      s3.buckets[ENV["S3_BUCKET"]].objects[path].acl = :public_read
       if ENV["BLITLINE_DEBUG"]
         Rails.logger.error "**************************************************************"
         Rails.logger.error "Upload result:"
-        Rails.logger.error s3.buckets[ENV["S3_BUCKET"]].objects[@asset.path(:original)].inspect
+        Rails.logger.error s3.buckets[ENV["S3_BUCKET"]].objects[path].inspect
         Rails.logger.error "**************************************************************"
       end
       process_with_blitline!
@@ -104,7 +105,7 @@ module PaperclipAssetBlitline
     def job_for_blitline
       {
         "application_id" => ENV["BLITLINE_APPLICATION_ID"],
-        "src" => "http://s3.amazonaws.com/#{ENV["S3_BUCKET"]}/#{@asset.path(:original)}",
+        "src" => "http://s3.amazonaws.com/#{ENV["S3_BUCKET"]}/#{@asset.path(:original).sub(/^\//, "")}",
         "functions" => functions_for_blitline
       }
     end
@@ -112,7 +113,7 @@ module PaperclipAssetBlitline
     def gif_job_for_blitline(style)
       {
         "application_id" => ENV["BLITLINE_APPLICATION_ID"],
-        "src" => "http://s3.amazonaws.com/#{ENV["S3_BUCKET"]}/#{@asset.path(:original)}",
+        "src" => "http://s3.amazonaws.com/#{ENV["S3_BUCKET"]}/#{@asset.path(:original).sub(/^\//, "")}",
         "src_type" => "gif",
         "src_data" => style_hash_for(style, true)
       }
@@ -151,8 +152,9 @@ module PaperclipAssetBlitline
       images.each do |image_hash|
         size = image_hash["image_identifier"]
         file_content = open(image_hash["s3_url"]) { |f| f.read }
-        s3.buckets[ENV["S3_BUCKET"]].objects[@asset.path(size)].write(file_content)
-        s3.buckets[ENV["S3_BUCKET"]].objects[@asset.path(size)].acl = :public_read
+        path = @asset.path(size).sub(/^\//, "")
+        s3.buckets[ENV["S3_BUCKET"]].objects[path].write(file_content)
+        s3.buckets[ENV["S3_BUCKET"]].objects[path].acl = :public_read
       end    
     end
 

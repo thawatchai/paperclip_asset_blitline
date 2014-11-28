@@ -1,3 +1,5 @@
+require "cld"
+
 module PaperclipAssetBlitline
   module Hook
     module ClassMethods

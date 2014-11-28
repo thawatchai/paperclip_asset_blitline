@@ -1,3 +1,5 @@
+require "blitline"
+
 module PaperclipAssetBlitline
   class S3Upload
     attr_accessor :media_file, :uploaded_file, :asset_name, :asset

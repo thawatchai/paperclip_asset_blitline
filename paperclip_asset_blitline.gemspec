@@ -24,4 +24,5 @@ Gem::Specification.new do |s|
   s.add_dependency("paperclip", ">= 4.1.1")
   s.add_dependency("aws-sdk",   ">= 1.52.0")
   s.add_dependency("cld",       ">= 0.7.0")
+  s.add_dependency("blitline",  ">= 2.4.0")
 end

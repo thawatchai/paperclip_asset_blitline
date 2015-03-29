@@ -149,13 +149,20 @@ module PaperclipAssetBlitline
       # Copy each images in the response back to s3.
       s3 = AWS::S3.new
       images = response["images"]
-      images.each do |image_hash|
-        size = image_hash["image_identifier"]
-        file_content = open(image_hash["s3_url"]) { |f| f.read }
-        path = @asset.path(size).sub(/^\//, "")
-        s3.buckets[ENV["S3_BUCKET"]].objects[path].write(file_content)
-        s3.buckets[ENV["S3_BUCKET"]].objects[path].acl = :public_read
-      end    
+      begin
+        images.each do |image_hash|
+          size = image_hash["image_identifier"]
+          file_content = open(image_hash["s3_url"]) { |f| f.read }
+          path = @asset.path(size).sub(/^\//, "")
+          s3.buckets[ENV["S3_BUCKET"]].objects[path].write(file_content)
+          s3.buckets[ENV["S3_BUCKET"]].objects[path].acl = :public_read
+        end
+      rescue NoMethodError => e
+        Rails.logger.error "**************************************************************"
+        Rails.logger.error response.inspect
+        Rails.logger.error "**************************************************************"
+        raise
+      end
     end
 
     def process_with_blitline!

@@ -129,6 +129,7 @@ module PaperclipAssetBlitline
         Rails.logger.error "**************************************************************"
       end
       response = blitline_service.post_job_and_wait_for_poll
+      response = JSON.parse(response) if response.is_a?(String) # Is JSON string?
       if ENV["BLITLINE_DEBUG"]
         Rails.logger.error "**************************************************************"
         Rails.logger.error response.inspect

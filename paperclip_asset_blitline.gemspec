@@ -20,9 +20,9 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.add_dependency("rails",     ">= 3.0")
-  s.add_dependency("paperclip", ">= 4.1.1")
-  s.add_dependency("aws-sdk",   ">= 1.52.0")
-  s.add_dependency("cld",       ">= 0.7.0")
-  s.add_dependency("blitline",  ">= 2.4.0")
+  s.add_dependency("rails",     "~> 4.2")
+  s.add_dependency("paperclip", "~> 4.2")
+  s.add_dependency("aws-sdk",   "~> 2.0")
+  s.add_dependency("cld",       "~> 0.7")
+  s.add_dependency("blitline",  "~> 2.4")
 end

@@ -168,7 +168,7 @@ module PaperclipAssetBlitline
           bucket.put_object(
             key:            path,
             body:           file_content,
-            content_length: @asset.size,
+            content_length: file_content.length,
             acl:            "public-read"
           )
 

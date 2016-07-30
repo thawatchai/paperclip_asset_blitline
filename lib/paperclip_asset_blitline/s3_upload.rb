@@ -175,7 +175,7 @@ module PaperclipAssetBlitline
           # s3.buckets[ENV["S3_BUCKET"]].objects[path].write(file_content)
           # s3.buckets[ENV["S3_BUCKET"]].objects[path].acl = :public_read
         end
-      rescue NoMethodError => e
+      rescue NoMethodError, TypeError => e
         Rails.logger.error "**************************************************************"
         Rails.logger.error response.inspect
         Rails.logger.error response.class.inspect

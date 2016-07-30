@@ -160,20 +160,24 @@ module PaperclipAssetBlitline
       images = response["images"]
       begin
         images.each do |image_hash|
-          size = image_hash["image_identifier"]
-          file_content = open(image_hash["s3_url"]) { |f| f.read }
-          path = @asset.path(size).sub(/^\//, "")
+          unless image_hash["error"].blank?
+            @media_file.errors[@asset_name] << image_hash["error"]
+          else
+            size = image_hash["image_identifier"]
+            file_content = open(image_hash["s3_url"]) { |f| f.read }
+            path = @asset.path(size).sub(/^\//, "")
 
-          bucket = Aws::S3::Resource.new.bucket(ENV["S3_BUCKET"])
-          bucket.put_object(
-            key:            path,
-            body:           file_content,
-            content_length: file_content.length,
-            acl:            "public-read"
-          )
+            bucket = Aws::S3::Resource.new.bucket(ENV["S3_BUCKET"])
+            bucket.put_object(
+              key:            path,
+              body:           file_content,
+              content_length: file_content.length,
+              acl:            "public-read"
+            )
 
-          # s3.buckets[ENV["S3_BUCKET"]].objects[path].write(file_content)
-          # s3.buckets[ENV["S3_BUCKET"]].objects[path].acl = :public_read
+            # s3.buckets[ENV["S3_BUCKET"]].objects[path].write(file_content)
+            # s3.buckets[ENV["S3_BUCKET"]].objects[path].acl = :public_read
+          end
         end
       rescue NoMethodError, TypeError => e
         Rails.logger.error "**************************************************************"

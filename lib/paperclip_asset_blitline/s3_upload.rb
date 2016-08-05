@@ -179,7 +179,7 @@ module PaperclipAssetBlitline
             # s3.buckets[ENV["S3_BUCKET"]].objects[path].acl = :public_read
           end
         end
-      rescue NoMethodError, TypeError => e
+      rescue NoMethodError, TypeError, OpenURI::HTTPError => e
         Rails.logger.error "**************************************************************"
         Rails.logger.error response.inspect
         Rails.logger.error response.class.inspect

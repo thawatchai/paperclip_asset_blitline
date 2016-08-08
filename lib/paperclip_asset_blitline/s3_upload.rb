@@ -160,8 +160,10 @@ module PaperclipAssetBlitline
       images = response["images"]
       begin
         images.each do |image_hash|
-          unless image_hash["error"].blank?
+          if ! image_hash["error"].blank?
             @media_file.errors[@asset_name] << image_hash["error"]
+          elsif ! image_hash["failed_image_identifiers"].blank?
+            @media_file.errors[@asset_name] << ("Failed image identifiers:" + image_hash["failed_image_identifiers"].join(", "))
           else
             size = image_hash["image_identifier"]
             file_content = open(image_hash["s3_url"]) { |f| f.read }

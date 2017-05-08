@@ -74,7 +74,18 @@ module PaperclipAssetBlitline
     def watermark_function
       unless @options[:watermark].blank?
         text = @options[:watermark].respond_to?(:call) ?
-                 @options[:watermark].call() : @options[:watermark]
+                 @options[:watermark].call(@media_file) : @options[:watermark]
+
+        if text.blank?
+          []
+        else
+          [{
+            "name" => "watermark",
+            "params" => {
+              "text" => text
+            }
+          }]
+        end
       else
         []
       end

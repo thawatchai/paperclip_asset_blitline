@@ -4,10 +4,11 @@ module PaperclipAssetBlitline
   class S3Upload
     attr_accessor :media_file, :uploaded_file, :asset_name, :asset
 
-    def initialize(media_file, uploaded_file, asset_name = :asset)
+    def initialize(media_file, uploaded_file, asset_name = :asset, options = {})
       @media_file    = media_file
       @uploaded_file = uploaded_file
       @asset_name    = asset_name
+      @options       = options
       @asset         = @media_file.send(@asset_name)
     end
 
@@ -70,6 +71,15 @@ module PaperclipAssetBlitline
       }]
     end
 
+    def watermark_function
+      unless @options[:watermark].blank?
+        text = @options[:watermark].respond_to?(:call) ?
+                 @options[:watermark].call() : @options[:watermark]
+      else
+        []
+      end
+    end
+
     def style_hash_for(style, gif = false)
       geometry = Paperclip::Geometry.parse(@asset.styles[style].geometry)
       style_hash = {}
@@ -91,7 +101,8 @@ module PaperclipAssetBlitline
           # Resize to height, then crop the width.
           style_hash["params"]["height"] = geometry.height
         end
-        style_hash["functions"] = extended_crop_functions(style, geometry)
+        style_hash["functions"] = extended_crop_functions(style, geometry) +
+                                    watermark_function
       else
         style_hash["save"] = { "image_identifier" => style.to_s }
         # {
@@ -106,6 +117,7 @@ module PaperclipAssetBlitline
 
     def functions_for_blitline
       @asset.styles.keys.inject([]) do |result, style|
+        result += watermark_function
         result << style_hash_for(style, false)
       end
     end

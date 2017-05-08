@@ -26,7 +26,8 @@ module PaperclipAssetBlitline
       end
 
       def blitline_asset_attributes(*args)
-        (self.blitline_asset_names = args).each do |name|
+        self.blitline_asset_names, self.blitline_settings = args.partition { |a| !a.is_a?(Hash) }
+        self.blitline_asset_names.each do |name|
           self.class_eval {
             attr_accessor "blitline_#{name}"
 
@@ -43,6 +44,9 @@ module PaperclipAssetBlitline
             end
           }
         end
+        self.blitline_settings = self.blitline_settings.inject({}) do |result, hash|
+          result.merge(hash)
+        end
       end
     end
 
@@ -58,7 +62,9 @@ module PaperclipAssetBlitline
           is_image = self.send("#{asset_name}_content_type") =~ /(jpeg|jpg|png|gif)/i
           current_asset = self.send("blitline_#{asset_name}")
           if ! current_asset.nil? && is_image
-            ::PaperclipAssetBlitline::S3Upload.new(self, current_asset, asset_name).upload!
+            ::PaperclipAssetBlitline::S3Upload.new(
+              self, current_asset, asset_name, self.class.blitline_settings
+            ).upload!
           end
         end
       end
@@ -67,7 +73,7 @@ module PaperclipAssetBlitline
     def self.included(klass)
       klass.extend ClassMethods
       klass.class_eval {
-        cattr_accessor :blitline_asset_names
+        cattr_accessor :blitline_asset_names, :blitline_settings
         after_save :upload_to_s3_and_process_with_blitline, if: Proc.new { |x| self.class.is_blitline_enabled? }
       }
       klass.module_eval {

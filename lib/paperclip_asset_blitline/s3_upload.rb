@@ -226,13 +226,13 @@ module PaperclipAssetBlitline
     end
 
     def process_with_blitline!
-      jobs = if @asset.path(:original) =~ /\.gif$/
-        @asset.styles.keys.inject([]) do |result, key|
-          result << gif_job_for_blitline(key)
-        end
-      else
+      # jobs = if @asset.path(:original) =~ /\.gif$/
+      #   @asset.styles.keys.inject([]) do |result, key|
+      #     result << gif_job_for_blitline(key)
+      #   end
+      # else
         [job_for_blitline]
-      end
+      # end
       jobs.each { |job| add_job_and_process_result!(job) }
     end
   end

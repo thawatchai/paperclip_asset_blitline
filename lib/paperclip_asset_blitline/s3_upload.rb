@@ -231,7 +231,7 @@ module PaperclipAssetBlitline
       #     result << gif_job_for_blitline(key)
       #   end
       # else
-        [job_for_blitline]
+      jobs = [job_for_blitline]
       # end
       jobs.each { |job| add_job_and_process_result!(job) }
     end

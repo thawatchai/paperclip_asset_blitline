@@ -66,26 +66,11 @@ module PaperclipAssetBlitline
             "width"  => geometry.width,
             "height" => geometry.height
           }
-        }.merge(watermark_function(style))
+        }.merge(watermark_function(style, geometry))
       ]
     end
 
-    def watermark_point_size(style)
-      case style.to_s
-      when "cover"
-        "48"
-      when "large"
-        "32"
-      when "default"
-        "24"
-      when "small"
-        "8"
-      else
-        "10"
-      end
-    end
-
-    def watermark_function(style)
+    def watermark_function(style, geometry)
       options = {
         "save" => {
           "image_identifier" => style.to_s
@@ -106,7 +91,7 @@ module PaperclipAssetBlitline
                 "params" => {
                   "text"       => text,
                   "gravity"    => "SouthGravity",
-                  "point_size" => watermark_point_size(style),
+                  "point_size" => (geometry.width / 20).to_s,
                   "opacity"    => "0.2"
                 }
               }.merge(options)
@@ -148,7 +133,7 @@ module PaperclipAssetBlitline
         style_hash["params"]["width"]  = geometry.width  if geometry.width  > 0
         style_hash["params"]["height"] = geometry.height if geometry.height > 0
 
-        style_hash.merge!(watermark_function(style))
+        style_hash.merge!(watermark_function(style, geometry))
       end
       style_hash
     end

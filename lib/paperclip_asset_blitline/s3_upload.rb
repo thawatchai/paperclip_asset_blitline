@@ -57,13 +57,15 @@ module PaperclipAssetBlitline
     end
 
     def extended_crop_functions(style, geometry)
-      [{
-        "name" => "crop",
-        "params" => {
-          "x"      => 0,
-          "y"      => 0,
-          "width"  => geometry.width,
-          "height" => geometry.height
+      [
+        {
+          "name" => "crop",
+          "params" => {
+            "x"      => 0,
+            "y"      => 0,
+            "width"  => geometry.width,
+            "height" => geometry.height
+          }
         }.merge(
           watermark_function(
             "save" => {
@@ -71,7 +73,7 @@ module PaperclipAssetBlitline
             }
           )
         )
-      }]
+      ]
     end
 
     def watermark_function(options)
@@ -83,12 +85,14 @@ module PaperclipAssetBlitline
           options
         else
           {
-            "functions" => [{
-              "name" => "watermark",
-              "params" => {
-                "text" => text
+            "functions" => [
+              {
+                "name" => "watermark",
+                "params" => {
+                  "text" => text
+                }
               }.merge(options)
-            }] 
+            ] 
           }
         end
       else

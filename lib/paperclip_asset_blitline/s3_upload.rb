@@ -66,17 +66,31 @@ module PaperclipAssetBlitline
             "width"  => geometry.width,
             "height" => geometry.height
           }
-        }.merge(
-          watermark_function(
-            "save" => {
-              "image_identifier" => style.to_s
-            }
-          )
-        )
+        }.merge(watermark_function(style))
       ]
     end
 
-    def watermark_function(options)
+    def watermark_point_size(style)
+      case style.to_s
+      when "cover"
+        "48"
+      when "large"
+        "32"
+      when "default"
+        "24"
+      when "small"
+        "8"
+      else
+        "10"
+    end
+
+    def watermark_function(style)
+      options = {
+        "save" => {
+          "image_identifier" => style.to_s
+        }
+      }
+
       unless @options[:watermark].blank?
         text = @options[:watermark].respond_to?(:call) ?
                  @options[:watermark].call(@media_file) : @options[:watermark]
@@ -89,7 +103,10 @@ module PaperclipAssetBlitline
               {
                 "name" => "watermark",
                 "params" => {
-                  "text" => text
+                  "text"       => text,
+                  "gravity"    => "SouthGravity",
+                  "point_size" => watermark_point_size(style),
+                  "opacity"    => "0.2"
                 }
               }.merge(options)
             ] 
@@ -130,13 +147,7 @@ module PaperclipAssetBlitline
         style_hash["params"]["width"]  = geometry.width  if geometry.width  > 0
         style_hash["params"]["height"] = geometry.height if geometry.height > 0
 
-        style_hash.merge!(
-          watermark_function(
-            "save" => {
-              "image_identifier" => style.to_s
-            }
-          )
-        )
+        style_hash.merge!(watermark_function(style))
       end
       style_hash
     end

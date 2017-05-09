@@ -64,11 +64,12 @@ module PaperclipAssetBlitline
           "y"      => 0,
           "width"  => geometry.width,
           "height" => geometry.height
-        },
-        watermark_function(
-          "save" => {
-            "image_identifier" => style.to_s
-          }
+        }.merge(
+          watermark_function(
+            "save" => {
+              "image_identifier" => style.to_s
+            }
+          )
         )
       }]
     end

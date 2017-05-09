@@ -65,29 +65,33 @@ module PaperclipAssetBlitline
           "width"  => geometry.width,
           "height" => geometry.height
         },
-        "save" => {
-          "image_identifier" => style.to_s
-        }
+        watermark_function(
+          "save" => {
+            "image_identifier" => style.to_s
+          }
+        )
       }]
     end
 
-    def watermark_function
+    def watermark_function(options)
       unless @options[:watermark].blank?
         text = @options[:watermark].respond_to?(:call) ?
                  @options[:watermark].call(@media_file) : @options[:watermark]
 
         if text.blank?
-          []
+          options
         else
-          [{
-            "name" => "watermark",
-            "params" => {
-              "text" => text
-            }
-          }]
+          {
+            "functions" => [{
+              "name" => "watermark",
+              "params" => {
+                "text" => text
+              }.merge(options)
+            }] 
+          }
         end
       else
-        []
+        options
       end
     end
 
@@ -112,23 +116,28 @@ module PaperclipAssetBlitline
           # Resize to height, then crop the width.
           style_hash["params"]["height"] = geometry.height
         end
-        style_hash["functions"] = extended_crop_functions(style, geometry) +
-                                    watermark_function
+        style_hash["functions"] = extended_crop_functions(style, geometry)
       else
-        style_hash["save"] = { "image_identifier" => style.to_s }
         # {
           # "bucket" => ENV["S3_BUCKET"],
           # "key"    => @asset.path(style)
         # }
         style_hash["params"]["width"]  = geometry.width  if geometry.width  > 0
         style_hash["params"]["height"] = geometry.height if geometry.height > 0
+
+        style_hash.merge!(
+          watermark_function(
+            "save" => {
+              "image_identifier" => style.to_s
+            }
+          )
+        )
       end
       style_hash
     end
 
     def functions_for_blitline
       @asset.styles.keys.inject([]) do |result, style|
-        result += watermark_function
         result << style_hash_for(style, false)
       end
     end

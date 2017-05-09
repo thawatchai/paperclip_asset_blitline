@@ -82,6 +82,7 @@ module PaperclipAssetBlitline
         "8"
       else
         "10"
+      end
     end
 
     def watermark_function(style)

@@ -46,13 +46,13 @@ module PaperclipAssetBlitline
 
     private
 
-    def translate_geometry_modifier(modifier, gif = false)
+    def translate_geometry_modifier(modifier, animated_gif = false)
       # NOTE: Add this later, we only need this for now.
       case modifier
       when "#"
-        gif ? "resize_gif" : "resize_to_fill"
+        animated_gif ? "resize_gif" : "resize_to_fill"
       else
-        gif ? "resize_gif_to_fit" : "resize_to_fit"
+        animated_gif ? "resize_gif_to_fit" : "resize_to_fit"
       end
     end
 
@@ -103,12 +103,12 @@ module PaperclipAssetBlitline
       end
     end
 
-    def style_hash_for(style, gif = false)
+    def style_hash_for(style, animated_gif = false)
       geometry = Paperclip::Geometry.parse(@asset.styles[style].geometry)
       style_hash = {}
-      style_hash["name"] = translate_geometry_modifier(geometry.modifier, gif)
+      style_hash["name"] = translate_geometry_modifier(geometry.modifier, animated_gif)
       style_hash["params"] = {}
-      if geometry.modifier == ">" && ! gif &&
+      if geometry.modifier == ">" && ! animated_gif &&
          (@asset.styles[style].geometry =~ /^(\d*)x(\d+)\>$/ ||
           @asset.styles[style].geometry =~ /^(\d+)\>x?(\d*)$/)
         # NOTE: This is different from paperclip/imagemagick.
@@ -133,7 +133,11 @@ module PaperclipAssetBlitline
         style_hash["params"]["width"]  = geometry.width  if geometry.width  > 0
         style_hash["params"]["height"] = geometry.height if geometry.height > 0
 
-        style_hash.merge!(watermark_function(style, geometry))
+        if animated_gif
+          style_hash["save"] = { "image_identifier" => style.to_s }
+        else
+          style_hash.merge!(watermark_function(style, geometry))
+        end
       end
       style_hash
     end

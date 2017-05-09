@@ -161,7 +161,7 @@ module PaperclipAssetBlitline
       }
     end
 
-    def add_job_and_process_result!(job)
+    def add_job(job)
       blitline_service = Blitline.new
       blitline_service.add_job_via_hash(job)
 
@@ -177,6 +177,11 @@ module PaperclipAssetBlitline
         Rails.logger.error response.inspect
         Rails.logger.error "**************************************************************"
       end
+      response
+    end
+
+    def add_job_and_process_result!(job)
+      response = add_job(job)
 
       # { "original_meta"=>{"width"=>262, "height"=>192},
       #   "images"=>[
@@ -226,14 +231,87 @@ module PaperclipAssetBlitline
     end
 
     def process_with_blitline!
-      # jobs = if @asset.path(:original) =~ /\.gif$/
-      #   @asset.styles.keys.inject([]) do |result, key|
-      #     result << gif_job_for_blitline(key)
-      #   end
-      # else
-      jobs = [job_for_blitline]
-      # end
+      jobs = if @asset.path(:original) =~ /\.gif$/ && is_animated_gif?
+        @asset.styles.keys.inject([]) do |result, key|
+          result << gif_job_for_blitline(key)
+        end
+      else
+        [job_for_blitline]
+      end
       jobs.each { |job| add_job_and_process_result!(job) }
+    end
+
+    def is_animated_gif?
+      job = {
+        "application_id" => ENV["BLITLINE_APPLICATION_ID"],
+        "src" => "http://s3.amazonaws.com/#{ENV["S3_BUCKET"]}/#{@asset.path(:original).sub(/^\//, "")}",
+        "get_exif" => "true",
+        "v" => "1.21",
+        "functions" => [
+          {
+            "name" => "resize_to_fit",
+            "params" => {
+              "width" => "100"
+            },
+            "save" => {
+              "image_identifier" => "MY_CLIENT_ID"
+            }    
+          }
+        ]
+      }
+
+      response = add_job(job)
+
+      # Expected output:
+      # {
+      #     "original_meta": {
+      #         "width": 350,
+      #         "height": 350,
+      #         "original_exif": {
+      #             "FileSize": "6.9 kB",
+      #             "FileModifyDate": "2017-05-09 10:33:49 +0000",
+      #             "FileAccessDate": "2017-05-09 10:33:49 +0000",
+      #             "FileInodeChangeDate": "2017-05-09 10:33:49 +0000",
+      #             "FileType": "GIF",
+      #             "FileTypeExtension": "gif",
+      #             "MIMEType": "image/gif",
+      #             "GIFVersion": "89a",
+      #             "ImageWidth": 350,
+      #             "ImageHeight": 350,
+      #             "HasColorMap": "Yes",
+      #             "ColorResolutionDepth": 4,
+      #             "BitsPerPixel": 4,
+      #             "BackgroundColor": 15,
+      #             "AnimationIterations": "Infinite",
+      #             "FrameCount": 5,
+      #             "Duration": "5.00 s",
+      #             "ImageSize": "350x350",
+      #             "Megapixels": 0.122
+      #         },
+      #         "density_info": {
+      #             "density_x": 72,
+      #             "density_y": 72,
+      #             "units": "PixelsPerInch"
+      #         },
+      #         "filesize": 7051
+      #     },
+      #     "images": [
+      #         {
+      #             "image_identifier": "MY_CLIENT_ID",
+      #             "s3_url": "http://blitline.s3.amazonaws.com/2017050910/4633/this_file_will_be_autodeleted_in_24hrs_4YC5msZzvAx9cM3Wez2UNJQ.jpg",
+      #             "meta": {
+      #                 "width": 100,
+      #                 "height": 100
+      #             }
+      #         }
+      #     ],
+      #     "job_id": "9rDkX8nGd8WyDLlar7iSJwA"
+      # }
+
+      !response.blank? && !response["original_meta"].blank? &&
+        !response["original_meta"]["original_exif"].blank? &&
+        !response["original_meta"]["original_exif"]["FrameCount"].blank? &&
+        response["original_meta"]["original_exif"]["FrameCount"].to_i > 0
     end
   end
 end

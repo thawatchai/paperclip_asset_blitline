@@ -33,7 +33,9 @@ module PaperclipAssetBlitline
 
             # Hijack the attribute to prevent paperclip from processing automatically.
             define_method("#{name}=") do |uploaded|
-              if self.class.is_blitline_enabled? && uploaded && uploaded.content_type =~ /(jpeg|jpg|png|gif)/i
+              if self.class.is_blitline_enabled? && uploaded &&
+                 uploaded.respond_to?(:content_type) &&
+                 uploaded.content_type =~ /(jpeg|jpg|png|gif)/i
                 self.send("blitline_#{name}=", uploaded)
                 self.send("#{name}_file_size=", uploaded.size)
                 self.send("#{name}_file_name=", self.class.convert_thai_filename(uploaded.original_filename))

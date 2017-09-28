@@ -32,6 +32,7 @@ module PaperclipAssetBlitline
             attr_accessor "blitline_#{name}"
 
             # Hijack the attribute to prevent paperclip from processing automatically.
+            alias_method "orig_#{name}=", "#{name}="
             define_method("#{name}=") do |uploaded|
               if self.class.is_blitline_enabled? && uploaded &&
                  uploaded.respond_to?(:content_type) &&
@@ -41,7 +42,8 @@ module PaperclipAssetBlitline
                 self.send("#{name}_file_name=", self.class.convert_thai_filename(uploaded.original_filename))
                 self.send("#{name}_content_type=", self.class.translate_content_type(uploaded.content_type))
               else
-                self.send(name).assign(uploaded)    # This is copied from paperclip/has_attached_file.rb.
+                self.send("orig_#{name}=", uploaded)  # Use paperclip's original assignment.
+                # self.send(name).assign(uploaded)    # This is copied from paperclip/has_attached_file.rb.
               end
             end
           }

@@ -95,7 +95,7 @@ module PaperclipAssetBlitline
                   "opacity"    => "0.2"
                 }
               }.merge(options)
-            ] 
+            ]
           }
         end
       else
@@ -110,6 +110,7 @@ module PaperclipAssetBlitline
       style_hash["params"] = {}
       if geometry.modifier == ">" && ! animated_gif &&
          (@asset.styles[style].geometry =~ /^(\d*)x(\d+)\>$/ ||
+          @asset.styles[style].geometry =~ /^(\d+)\>$/ ||
           @asset.styles[style].geometry =~ /^(\d+)\>x?(\d*)$/)
         # NOTE: This is different from paperclip/imagemagick.
         # =>    e.g.: 940x300> will resize to the width first, then crop the height
@@ -117,7 +118,8 @@ module PaperclipAssetBlitline
         # =>          940>x300 will resize to the height first, then crop the width
         # =>                   if it's more than 940px.
         # =>    This doesn't work for .gif.
-        if @asset.styles[style].geometry =~ /^(\d*)x(\d+)\>$/
+        if @asset.styles[style].geometry =~ /^(\d*)x(\d+)\>$/ ||
+           @asset.styles[style].geometry =~ /^(\d+)\>$/
           # Resize to width, then crop the height.
           style_hash["params"]["width"] = geometry.width
         elsif @asset.styles[style].geometry =~ /^(\d+)\>x?(\d*)$/
@@ -197,7 +199,7 @@ module PaperclipAssetBlitline
       #   ],
       #   "job_id"=>"6Io_LP13xwL29UmKYjBs4wA"
       # }
-    
+
       # Copy each images in the response back to s3.
       s3 = Aws::S3::Client.new
       images = response["images"]
@@ -259,7 +261,7 @@ module PaperclipAssetBlitline
             },
             "save" => {
               "image_identifier" => "MY_CLIENT_ID"
-            }    
+            }
           }
         ]
       }

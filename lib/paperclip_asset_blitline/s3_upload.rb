@@ -153,7 +153,7 @@ module PaperclipAssetBlitline
     def job_for_blitline
       {
         "application_id" => ENV["BLITLINE_APPLICATION_ID"],
-        "src" => "http://s3.amazonaws.com/#{ENV["S3_BUCKET"]}/#{@asset.path(:original).sub(/^\//, "")}",
+        "src" => "https://s3.amazonaws.com/#{ENV["S3_BUCKET"]}/#{@asset.path(:original).sub(/^\//, "")}",
         "functions" => functions_for_blitline
       }
     end
@@ -161,7 +161,7 @@ module PaperclipAssetBlitline
     def gif_job_for_blitline(style)
       {
         "application_id" => ENV["BLITLINE_APPLICATION_ID"],
-        "src" => "http://s3.amazonaws.com/#{ENV["S3_BUCKET"]}/#{@asset.path(:original).sub(/^\//, "")}",
+        "src" => "https://s3.amazonaws.com/#{ENV["S3_BUCKET"]}/#{@asset.path(:original).sub(/^\//, "")}",
         "src_type" => "gif",
         "src_data" => style_hash_for(style, true)
       }
@@ -250,7 +250,7 @@ module PaperclipAssetBlitline
     def is_animated_gif?
       job = {
         "application_id" => ENV["BLITLINE_APPLICATION_ID"],
-        "src" => "http://s3.amazonaws.com/#{ENV["S3_BUCKET"]}/#{@asset.path(:original).sub(/^\//, "")}",
+        "src" => "https://s3.amazonaws.com/#{ENV["S3_BUCKET"]}/#{@asset.path(:original).sub(/^\//, "")}",
         "get_exif" => "true",
         "v" => "1.21",
         "functions" => [

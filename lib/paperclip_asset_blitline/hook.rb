@@ -1,5 +1,3 @@
-require "cld"
-
 module PaperclipAssetBlitline
   module Hook
     module ClassMethods
@@ -11,14 +9,9 @@ module PaperclipAssetBlitline
         content_type.blank? ? "application/octet-stream" : content_type.chomp
       end
 
-      def convert_thai_filename(filename)
-        cld = ::CLD.detect_language(filename)
-        if cld[:code] == "th"
-          # Rename the file if it's using Thai language.
-          DateTime.now.strftime("%Y%m%d%H%M%S") + File.extname(filename)
-        else
-          filename
-        end
+      def convert_filename(filename)
+        # Rename the file.
+        DateTime.now.strftime("%Y%m%d%H%M%S") + File.extname(filename)
       end
 
       def is_blitline_enabled?
@@ -39,7 +32,7 @@ module PaperclipAssetBlitline
                  uploaded.content_type =~ /(jpeg|jpg|png|gif)/i
                 self.send("blitline_#{name}=", uploaded)
                 self.send("#{name}_file_size=", uploaded.size)
-                self.send("#{name}_file_name=", self.class.convert_thai_filename(uploaded.original_filename))
+                self.send("#{name}_file_name=", self.class.convert_filename(uploaded.original_filename))
                 self.send("#{name}_content_type=", self.class.translate_content_type(uploaded.content_type))
               else
                 self.send("orig_#{name}=", uploaded)  # Use paperclip's original assignment.

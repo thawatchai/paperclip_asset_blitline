@@ -6,7 +6,7 @@ require "paperclip_asset_blitline/version"
 Gem::Specification.new do |s|
   s.name        = "paperclip_asset_blitline"
   s.version     = PaperclipAssetBlitline::VERSION
-  s.platform    = Gem::Platform::RUBY  
+  s.platform    = Gem::Platform::RUBY
   s.summary     = "Upload paperclip asset to S3 directly and process with blitline."
   s.email       = "support@usablelabs.org"
   s.homepage    = "http://github.com/thawatchai/paperclip_asset_blitline"
@@ -23,6 +23,5 @@ Gem::Specification.new do |s|
   s.add_dependency("rails",     ">= 4.2")
   s.add_dependency("paperclip", ">= 4.2")
   s.add_dependency("aws-sdk",   ">= 2.0")
-  s.add_dependency("cld",       "~> 0.7")
   s.add_dependency("blitline",  "~> 2.4")
 end

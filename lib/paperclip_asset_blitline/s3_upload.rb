@@ -1,4 +1,4 @@
-require "blitline"
+require 'blitline'
 
 module PaperclipAssetBlitline
   class S3Upload
@@ -13,29 +13,29 @@ module PaperclipAssetBlitline
     end
 
     def upload!
-      s3 = Aws::S3::Client.new
-      path = @asset.path(:original).sub(/^\//, "")
-      if ENV["BLITLINE_DEBUG"]
-        Rails.logger.error "**************************************************************"
+      # s3 = Aws::S3::Client.new
+      path = @asset.path(:original).sub(%r{^\/}, '')
+      if ENV['BLITLINE_DEBUG']
+        Rails.logger.error '*' * 60
         Rails.logger.error "Uploading original to: #{path}"
         Rails.logger.error @uploaded_file.inspect
-        Rails.logger.error "**************************************************************"
+        Rails.logger.error '*' * 60
       end
 
-      bucket = Aws::S3::Resource.new.bucket(ENV["S3_BUCKET"])
+      bucket = Aws::S3::Resource.new.bucket(ENV['S3_BUCKET'])
       bucket.put_object(
-        key:            path,
-        body:           @uploaded_file,
+        key: path,
+        body: @uploaded_file,
         content_length: @asset.size,
-        acl:            "public-read"
+        acl: 'public-read'
       )
       # s3.buckets[ENV["S3_BUCKET"]].objects[path].write(@uploaded_file)
       # s3.buckets[ENV["S3_BUCKET"]].objects[path].acl = :public_read
-      if ENV["BLITLINE_DEBUG"]
-        Rails.logger.error "**************************************************************"
-        Rails.logger.error "Upload result:"
+      if ENV['BLITLINE_DEBUG']
+        Rails.logger.error '*' * 60
+        Rails.logger.error 'Upload result:'
         Rails.logger.error bucket.object(path).inspect
-        Rails.logger.error "**************************************************************"
+        Rails.logger.error '*' * 60
       end
       process_with_blitline!
     end
@@ -49,22 +49,22 @@ module PaperclipAssetBlitline
     def translate_geometry_modifier(modifier, animated_gif = false)
       # NOTE: Add this later, we only need this for now.
       case modifier
-      when "#"
-        animated_gif ? "resize_gif" : "resize_to_fill"
+      when '#'
+        animated_gif ? 'resize_gif' : 'resize_to_fill'
       else
-        animated_gif ? "resize_gif_to_fit" : "resize_to_fit"
+        animated_gif ? 'resize_gif_to_fit' : 'resize_to_fit'
       end
     end
 
     def extended_crop_functions(style, geometry)
       [
         {
-          "name" => "crop",
-          "params" => {
-            "x"      => 0,
-            "y"      => 0,
-            "width"  => geometry.width,
-            "height" => geometry.height
+          'name' => 'crop',
+          'params' => {
+            'x' => 0,
+            'y' => 0,
+            'width' => geometry.width,
+            'height' => geometry.height
           }
         }.merge(watermark_function(style, geometry))
       ]
@@ -72,27 +72,30 @@ module PaperclipAssetBlitline
 
     def watermark_function(style, geometry)
       options = {
-        "save" => {
-          "image_identifier" => style.to_s
+        'save' => {
+          'image_identifier' => style.to_s
         }
       }
 
-      unless @options[:watermark].blank?
-        text = @options[:watermark].respond_to?(:call) ?
-                 @options[:watermark].call(@media_file) : @options[:watermark]
+      if @options[:watermark].present?
+        text = if @options[:watermark].respond_to?(:call)
+                 @options[:watermark].call(@media_file)
+               else
+                 @options[:watermark]
+               end
 
         if text.blank?
           options
         else
           {
-            "functions" => [
+            'functions' => [
               {
-                "name" => "watermark",
-                "params" => {
-                  "text"       => text,
-                  "gravity"    => "SouthGravity",
-                  "point_size" => (geometry.width / 20).to_s,
-                  "opacity"    => "0.2"
+                'name' => 'watermark',
+                'params' => {
+                  'text' => text,
+                  'gravity' => 'SouthGravity',
+                  'point_size' => (geometry.width / 20).to_s,
+                  'opacity' => '0.2'
                 }
               }.merge(options)
             ]
@@ -106,37 +109,38 @@ module PaperclipAssetBlitline
     def style_hash_for(style, animated_gif = false)
       geometry = Paperclip::Geometry.parse(@asset.styles[style].geometry)
       style_hash = {}
-      style_hash["name"] = translate_geometry_modifier(geometry.modifier, animated_gif)
-      style_hash["params"] = {}
-      if geometry.modifier == ">" && ! animated_gif &&
+      style_hash['name'] = translate_geometry_modifier(geometry.modifier,
+                                                       animated_gif)
+      style_hash['params'] = {}
+      if geometry.modifier == '>' && !animated_gif &&
          (@asset.styles[style].geometry =~ /^(\d*)x(\d+)\>$/ ||
           @asset.styles[style].geometry =~ /^(\d+)\>$/ ||
           @asset.styles[style].geometry =~ /^(\d+)\>x?(\d*)$/)
         # NOTE: This is different from paperclip/imagemagick.
-        # =>    e.g.: 940x300> will resize to the width first, then crop the height
-        # =>                   if it's more than 300px.
-        # =>          940>x300 will resize to the height first, then crop the width
-        # =>                   if it's more than 940px.
+        # =>    e.g.: 940x300> will resize to the width first, then crop the
+        # =>                   height if it's more than 300px.
+        # =>          940>x300 will resize to the height first, then crop the
+        # =>                   width if it's more than 940px.
         # =>    This doesn't work for .gif.
         if @asset.styles[style].geometry =~ /^(\d*)x(\d+)\>$/ ||
            @asset.styles[style].geometry =~ /^(\d+)\>$/
           # Resize to width, then crop the height.
-          style_hash["params"]["width"] = geometry.width
+          style_hash['params']['width'] = geometry.width
         elsif @asset.styles[style].geometry =~ /^(\d+)\>x?(\d*)$/
           # Resize to height, then crop the width.
-          style_hash["params"]["height"] = geometry.height
+          style_hash['params']['height'] = geometry.height
         end
-        style_hash["functions"] = extended_crop_functions(style, geometry)
+        style_hash['functions'] = extended_crop_functions(style, geometry)
       else
         # {
-          # "bucket" => ENV["S3_BUCKET"],
-          # "key"    => @asset.path(style)
+        #   'bucket' => ENV['S3_BUCKET'],
+        #   'key'    => @asset.path(style)
         # }
-        style_hash["params"]["width"]  = geometry.width  if geometry.width  > 0
-        style_hash["params"]["height"] = geometry.height if geometry.height > 0
+        style_hash['params']['width']  = geometry.width  if geometry.width  > 0
+        style_hash['params']['height'] = geometry.height if geometry.height > 0
 
         if animated_gif
-          style_hash["save"] = { "image_identifier" => style.to_s }
+          style_hash['save'] = { 'image_identifier' => style.to_s }
         else
           style_hash.merge!(watermark_function(style, geometry))
         end
@@ -152,18 +156,20 @@ module PaperclipAssetBlitline
 
     def job_for_blitline
       {
-        "application_id" => ENV["BLITLINE_APPLICATION_ID"],
-        "src" => "https://s3.amazonaws.com/#{ENV["S3_BUCKET"]}/#{@asset.path(:original).sub(/^\//, "")}",
-        "functions" => functions_for_blitline
+        'application_id' => ENV['BLITLINE_APPLICATION_ID'],
+        'src' => "https://s3.amazonaws.com/#{ENV['S3_BUCKET']}/" \
+                 "#{@asset.path(:original).sub(%r{^\/}, '')}",
+        'functions' => functions_for_blitline
       }
     end
 
     def gif_job_for_blitline(style)
       {
-        "application_id" => ENV["BLITLINE_APPLICATION_ID"],
-        "src" => "https://s3.amazonaws.com/#{ENV["S3_BUCKET"]}/#{@asset.path(:original).sub(/^\//, "")}",
-        "src_type" => "gif",
-        "src_data" => style_hash_for(style, true)
+        'application_id' => ENV['BLITLINE_APPLICATION_ID'],
+        'src' => "https://s3.amazonaws.com/#{ENV['S3_BUCKET']}/" \
+                 "#{@asset.path(:original).sub(%r{^\/}, '')}",
+        'src_type' => 'gif',
+        'src_data' => style_hash_for(style, true)
       }
     end
 
@@ -171,19 +177,27 @@ module PaperclipAssetBlitline
       blitline_service = Blitline.new
       blitline_service.add_job_via_hash(job)
 
-      if ENV["BLITLINE_DEBUG"]
-        Rails.logger.error "**************************************************************"
+      if ENV['BLITLINE_DEBUG']
+        Rails.logger.error '*' * 60
         Rails.logger.error job.inspect
-        Rails.logger.error "**************************************************************"
+        Rails.logger.error '*' * 60
       end
       response = blitline_service.post_job_and_wait_for_poll
-      response = JSON.parse(response) if response.is_a?(String) # Is JSON string?
-      if ENV["BLITLINE_DEBUG"]
-        Rails.logger.error "**************************************************************"
+      response = JSON.parse(response) if response.is_a?(String)
+      if ENV['BLITLINE_DEBUG']
+        Rails.logger.error '*' * 60
         Rails.logger.error response.inspect
-        Rails.logger.error "**************************************************************"
+        Rails.logger.error '*' * 60
       end
       response
+    rescue JSON::ParserError, MultiJson::ParseError => e
+      if ENV['BLITLINE_DEBUG']
+        Rails.logger.error '*' * 60
+        Rails.logger.error response.inspect
+        Rails.logger.error e.message
+        Rails.logger.error '*' * 60
+      end
+      { 'images' => [] }
     end
 
     def add_job_and_process_result!(job)
@@ -201,25 +215,27 @@ module PaperclipAssetBlitline
       # }
 
       # Copy each images in the response back to s3.
-      s3 = Aws::S3::Client.new
-      images = response["images"]
+      # s3 = Aws::S3::Client.new
+      images = response['images']
       begin
         images.each do |image_hash|
-          if ! image_hash["error"].blank?
-            @media_file.errors[@asset_name] << image_hash["error"]
-          elsif ! image_hash["failed_image_identifiers"].blank?
-            @media_file.errors[@asset_name] << ("Failed image identifiers:" + image_hash["failed_image_identifiers"].join(", "))
+          if !image_hash['error'].blank?
+            @media_file.errors[@asset_name] << image_hash['error']
+          elsif !image_hash['failed_image_identifiers'].blank?
+            @media_file.errors[@asset_name] <<
+              ('Failed image identifiers:' +
+                image_hash['failed_image_identifiers'].join(', '))
           else
-            size = image_hash["image_identifier"]
-            file_content = open(image_hash["s3_url"]) { |f| f.read }
-            path = @asset.path(size).sub(/^\//, "")
+            size = image_hash['image_identifier']
+            file_content = open(image_hash['s3_url']) { |f| f.read }
+            path = @asset.path(size).sub(%r{^\/}, '')
 
-            bucket = Aws::S3::Resource.new.bucket(ENV["S3_BUCKET"])
+            bucket = Aws::S3::Resource.new.bucket(ENV['S3_BUCKET'])
             bucket.put_object(
-              key:            path,
-              body:           file_content,
+              key: path,
+              body: file_content,
               content_length: file_content.length,
-              acl:            "public-read"
+              acl: 'public-read'
             )
 
             # s3.buckets[ENV["S3_BUCKET"]].objects[path].write(file_content)
@@ -227,40 +243,41 @@ module PaperclipAssetBlitline
           end
         end
       rescue NoMethodError, TypeError, OpenURI::HTTPError => e
-        Rails.logger.error "**************************************************************"
+        Rails.logger.error '*' * 60
         Rails.logger.error response.inspect
         Rails.logger.error response.class.inspect
-        Rails.logger.error response["images"].inspect
-        Rails.logger.error "**************************************************************"
+        Rails.logger.error response['images'].inspect
+        Rails.logger.error '*' * 60
         raise
       end
     end
 
     def process_with_blitline!
-      jobs = if @asset.path(:original) =~ /\.gif$/ && is_animated_gif?
-        @asset.styles.keys.inject([]) do |result, key|
-          result << gif_job_for_blitline(key)
-        end
-      else
-        [job_for_blitline]
-      end
+      jobs = if @asset.path(:original) =~ /\.gif$/ && animated_gif?
+               @asset.styles.keys.inject([]) do |result, key|
+                 result << gif_job_for_blitline(key)
+               end
+             else
+               [job_for_blitline]
+             end
       jobs.each { |job| add_job_and_process_result!(job) }
     end
 
-    def is_animated_gif?
+    def animated_gif?
       job = {
-        "application_id" => ENV["BLITLINE_APPLICATION_ID"],
-        "src" => "https://s3.amazonaws.com/#{ENV["S3_BUCKET"]}/#{@asset.path(:original).sub(/^\//, "")}",
-        "get_exif" => "true",
-        "v" => "1.21",
-        "functions" => [
+        'application_id' => ENV['BLITLINE_APPLICATION_ID'],
+        'src' => "https://s3.amazonaws.com/#{ENV['S3_BUCKET']}/" \
+                 "#{@asset.path(:original).sub(%r{^\/}, '')}",
+        'get_exif' => 'true',
+        'v' => '1.21',
+        'functions' => [
           {
-            "name" => "resize_to_fit",
-            "params" => {
-              "width" => "100"
+            'name' => 'resize_to_fit',
+            'params' => {
+              'width' => '100'
             },
-            "save" => {
-              "image_identifier" => "MY_CLIENT_ID"
+            'save' => {
+              'image_identifier' => 'MY_CLIENT_ID'
             }
           }
         ]
@@ -314,10 +331,10 @@ module PaperclipAssetBlitline
       #     "job_id": "9rDkX8nGd8WyDLlar7iSJwA"
       # }
 
-      !response.blank? && !response["original_meta"].blank? &&
-        !response["original_meta"]["original_exif"].blank? &&
-        !response["original_meta"]["original_exif"]["FrameCount"].blank? &&
-        response["original_meta"]["original_exif"]["FrameCount"].to_i > 0
+      !response.blank? && !response['original_meta'].blank? &&
+        !response['original_meta']['original_exif'].blank? &&
+        !response['original_meta']['original_exif']['FrameCount'].blank? &&
+        response['original_meta']['original_exif']['FrameCount'].to_i > 0
     end
   end
 end

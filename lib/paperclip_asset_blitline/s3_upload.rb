@@ -191,12 +191,10 @@ module PaperclipAssetBlitline
       end
       response
     rescue JSON::ParserError, MultiJson::ParseError => e
-      if ENV['BLITLINE_DEBUG']
-        Rails.logger.error '*' * 60
-        Rails.logger.error response.inspect
-        Rails.logger.error e.message
-        Rails.logger.error '*' * 60
-      end
+      Rails.logger.error '*' * 60
+      Rails.logger.error response.inspect
+      Rails.logger.error e.message
+      Rails.logger.error '*' * 60
       { 'images' => [] }
     end
 

@@ -41,8 +41,6 @@ module PaperclipAssetBlitline
                           self.class
                               .translate_content_type(uploaded.content_type))
               else
-                uploaded.original_filename =
-                  uploaded.original_filename.to_s.force_encoding('UTF-8')
                 # Use paperclip's original assignment.
                 self.send("orig_#{name}=", uploaded)
                 # This is copied from paperclip/has_attached_file.rb.

@@ -41,7 +41,7 @@ module PaperclipAssetBlitline
                           self.class
                               .translate_content_type(uploaded.content_type))
               else
-                if uploaded.original_filename.present?
+                if uploaded.present? && uploaded.original_filename.present?
                   uploaded.original_filename =
                     uploaded.original_filename.to_s.force_encoding('UTF-8')
                 end

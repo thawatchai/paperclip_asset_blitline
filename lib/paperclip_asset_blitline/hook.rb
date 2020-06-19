@@ -44,6 +44,7 @@ module PaperclipAssetBlitline
                 if uploaded.present? && uploaded.original_filename.present?
                   uploaded.original_filename =
                     uploaded.original_filename.to_s.force_encoding('UTF-8')
+                            .encode('UTF-8', invalid: :replace, undef: :replace)
                 end
                 # Use paperclip's original assignment.
                 self.send("orig_#{name}=", uploaded)

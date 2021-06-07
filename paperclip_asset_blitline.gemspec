@@ -20,8 +20,8 @@ Gem::Specification.new do |s|
                                            .map{ |f| File.basename(f) }
   s.require_paths = ['lib']
 
-  s.add_dependency('aws-sdk-s3', '~> 1')
-  s.add_dependency('blitline',   '~> 2.4')
-  s.add_dependency('paperclip',  '>= 4.2')
-  s.add_dependency('rails',      '>= 4.2')
+  s.add_dependency('aws-sdk-s3',   '~> 1')
+  s.add_dependency('blitline',     '~> 2.4')
+  s.add_dependency('kt-paperclip', '>= 4.2')
+  s.add_dependency('rails',        '>= 4.2')
 end
